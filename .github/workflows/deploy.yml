@@ -31,6 +31,7 @@ jobs:
           username: ${{ secrets.ALIYUN_USERNAME }}
           password: ${{ secrets.ALIYUN_PASSWORD }}
           port: 22
+          script: mkdir -p /www/wwwroot/music.naket.top
 
       - name: Deploy files to Aliyun server
         uses: appleboy/scp-action@master
