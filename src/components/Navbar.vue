@@ -14,8 +14,13 @@
         <a href="/my" class="nav-link" :class="{ active: currentRoute === '/my' }">个人中心</a>
         <a href="/playlist" class="nav-link" :class="{ active: currentRoute === '/playlist' }">歌单</a>
       </nav>
-
+      
       <div class="search-container">
+
+        <button 
+      class="floating-search-button"
+      @click="handleSearch" 
+    >搜索</button>
         <div class="search-input-wrapper" @click.stop="showOverlay = true">
           <input
             type="text"
@@ -408,6 +413,7 @@ onUnmounted(() => {
   flex: 1;
   max-width: 400px;
   margin: 0 20px;
+  position: relative;
 }
 
 .search-input-wrapper {
@@ -444,6 +450,27 @@ onUnmounted(() => {
   background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTk5OTkiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48bGluZSB4MT0iMTgiIHkxPSI2IiB4Mj0iNiIgeTI9IjE4Ii8+PGxpbmUgeDE9IjYiIHkxPSI2IiB4Mj0iMTgiIHkyPSIxOCIvPjwvc3ZnPg==');
   background-size: cover;
   cursor: pointer;
+}
+/* 新增浮动按钮样式 */
+.floating-search-button {
+  position: absolute;
+  right: -70px; /* 按钮定位到搜索框右侧 */
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 6px 16px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 18px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s;
+}
+
+.floating-search-button:hover {
+  background-color: var(--primary-dark);
 }
 
 /* 搜索蒙版样式 */

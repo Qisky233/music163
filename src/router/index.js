@@ -33,11 +33,11 @@ const routes = [
   //   name: 'Player',
   //   component: Player
   // },
-  // {
-  //   path: '/search',
-  //   name: 'Search',
-  //   component: Search
-  // },
+  {
+    path: '/search',
+    name: 'Search',
+    component: () => import('../views/Search.vue') 
+  },
   // 暂时注释掉尚未创建的UserProfile组件
   // {
   //   path: '/profile',
