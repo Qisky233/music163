@@ -13,11 +13,13 @@
     "axios": "^1.11.0",
     "howler": "^2.2.4",
     "pinia": "^3.0.3",
+    "qrcode": "^1.5.4",
     "vue": "^3.5.17",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.6.2",
-    "vite": "^5.4.1"
+    "vite": "^5.4.1",
+    "vite-svg-loader": "^5.1.0"
   }
 }

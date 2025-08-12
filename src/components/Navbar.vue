@@ -1,4 +1,26 @@
 <template>
+   <!-- 搜索遮罩层 -->
+   <div class="search-overlay" v-if="showOverlay"></div>
+  
+  <!-- 登录弹窗遮罩层 -->
+  <div class="login-overlay" v-if="showLoginModal" @click.self="hideLoginModal">
+    <div class="login-modal">
+      <button class="modal-close" @click="hideLoginModal">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+      
+      <!-- 动态切换登录组件 -->
+      <component 
+        :is="currentLoginComponent" 
+        :key="currentLoginComponent"  
+        @show-qr-modal="switchToQRLogin"
+        @show-phone-login="switchToPhoneLogin"
+        @login-success="handleLoginSuccess"
+      />
+    </div>
+  </div>
   <div class="search-overlay" v-if="showOverlay"></div>
   <header class="navbar-container">
     <div class="navbar-wrapper">
@@ -14,8 +36,13 @@
         <a href="/my" class="nav-link" :class="{ active: currentRoute === '/my' }">个人中心</a>
         <a href="/playlist" class="nav-link" :class="{ active: currentRoute === '/playlist' }">歌单</a>
       </nav>
-
+      
       <div class="search-container">
+
+        <button 
+      class="floating-search-button"
+      @click="handleSearch" 
+    >搜索</button>
         <div class="search-input-wrapper" @click.stop="showOverlay = true">
           <input
             type="text"
@@ -71,7 +98,7 @@
             <a href="#" class="menu-item logout" @click="handleLogout">退出登录</a>
           </div>
         </div>
-        <button v-else class="login-btn" @click="handleLogin">登录</button>
+        <button v-else class="login-btn" @click="showLoginModal = true">登录</button>
       </div>
 
       <button class="mobile-menu-btn" :class="{ 'active': showMobileMenu }" @click="toggleMobileMenu" v-if="isMobile">
@@ -98,8 +125,12 @@ import { useUserStore } from '../store/user'
 import { useRouter } from 'vue-router'
 import { searchAPI, songAPI } from '../api'
 import { usePlayerStore } from '../store/player'
+import { defineEmits } from 'vue'
+import QRLogin from '../components/QRLogin.vue'
+import Login from '../components/Login.vue'
 
-// 状态定义
+//状态定义
+const showLoginModal = ref(false)
 const userStore = useUserStore()
 const playerStore = usePlayerStore()
 const router = useRouter()
@@ -116,11 +147,29 @@ const currentPage = ref(1)
 const totalResults = ref(0)
 const searchResultsList = ref(null)
 const debounceTimer = ref(null)
+const emit = defineEmits(['login-clicked'])
 
+
+// 新增状态管理 - 直接使用组件作为初始值
+const currentLoginComponent = ref(Login) // 默认显示手机号登录组件
+
+// 切换到二维码登录
+const switchToQRLogin = () => {
+  currentLoginComponent.value = QRLogin // 直接赋值组件
+}
+
+// 切换回手机号登录
+const switchToPhoneLogin = () => {
+  currentLoginComponent.value = Login // 直接赋值组件
+}
 // 计算属性
 const isLogin = computed(() => userStore.isLoggedIn)
 
 // 方法定义
+const hideNavbarModal = () => {
+  showLoginModal.value = false;
+  document.body.style.overflow = ''; // 恢复背景滚动
+};
 /**
  * 处理窗口大小变化
  */
@@ -159,12 +208,28 @@ const handleSearch = () => {
     showSuggestions.value = false
   }
 }
+// 显示登录弹窗
+const showLogin = () => {
+  showLoginModal.value = true
+  document.body.style.overflow = 'hidden' // 禁止背景滚动
+}
 
+// 隐藏登录弹窗
+const hideLoginModal = () => {
+  showLoginModal.value = false
+  document.body.style.overflow = '' // 恢复背景滚动
+}
+
+// 处理登录成功
+const handleLoginSuccess = () => {
+  hideLoginModal()
+  // 可以在这里添加登录成功后的逻辑
+}
 /**
  * 处理登录
  */
-const handleLogin = () => {
-  router.push('/login')
+ const emitLoginClick = () => {
+  emit('login-clicked')
 }
 
 /**
@@ -321,6 +386,75 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* 新增登录弹窗样式 */
+.login-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001; /* 高于搜索遮罩层 */
+  animation: fadeIn 0.3s ease;
+}
+
+.login-modal {
+  position: relative;
+  background-color: white;
+  border-radius: 12px;
+  padding: 20px;
+  width: 90%;
+  max-width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.3s ease;
+}
+
+.modal-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.2s;
+  z-index: 1;
+}
+
+.modal-close:hover {
+  color: #333;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    transform: translateY(20px);
+    opacity: 0.8;
+  }
+  to { 
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .login-modal {
+    width: 95%;
+    padding: 15px;
+  }
+}
 /* 导航栏容器样式 */
 .navbar-container {
   position: fixed;
@@ -408,6 +542,7 @@ onUnmounted(() => {
   flex: 1;
   max-width: 400px;
   margin: 0 20px;
+  position: relative;
 }
 
 .search-input-wrapper {
@@ -444,6 +579,27 @@ onUnmounted(() => {
   background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTk5OTkiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48bGluZSB4MT0iMTgiIHkxPSI2IiB4Mj0iNiIgeTI9IjE4Ii8+PGxpbmUgeDE9IjYiIHkxPSI2IiB4Mj0iMTgiIHkyPSIxOCIvPjwvc3ZnPg==');
   background-size: cover;
   cursor: pointer;
+}
+/* 新增浮动按钮样式 */
+.floating-search-button {
+  position: absolute;
+  right: -70px; /* 按钮定位到搜索框右侧 */
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 6px 16px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 18px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s;
+}
+
+.floating-search-button:hover {
+  background-color: var(--primary-dark);
 }
 
 /* 搜索蒙版样式 */

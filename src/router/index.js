@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 
 // 懒加载组件
-const Login = () => import('../views/Login.vue')
 // 暂时注释掉尚未创建的组件
 // const PlaylistDetail = () => import('../views/PlaylistDetail.vue')
 // const Player = () => import('../views/Player.vue')
@@ -16,11 +15,6 @@ const routes = [
     name: 'Home',
     component: Home
   },
-  {
-    path: '/login',
-    name: 'Login',
-    component: Login
-  },
   // 暂时注释掉尚未创建的路由
   // {
   //   path: '/playlist/:id',
@@ -33,11 +27,11 @@ const routes = [
   //   name: 'Player',
   //   component: Player
   // },
-  // {
-  //   path: '/search',
-  //   name: 'Search',
-  //   component: Search
-  // },
+  {
+    path: '/search',
+    name: 'Search',
+    component: () => import('../views/Search.vue') 
+  },
   // 暂时注释掉尚未创建的UserProfile组件
   // {
   //   path: '/profile',
