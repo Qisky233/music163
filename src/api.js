@@ -65,7 +65,187 @@ instance.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+/**
+ * 二维码登录相关API
+ */
+ /**
+ * 二维码登录相关API
+ */
+export const qrLoginAPI = {
+  /**
+   * 获取二维码登录key
+   * @returns {Promise<string>} 返回unikey
+   */
+  // 在 qrLoginAPI 中的 getQRKey 方法
+  // 在 getQRKey 方法中增加校验
+  getQRKey() {
+    return instance.get('/login/qr/key')
+      .then(response => {
+        const businessData = response.data;
+        console.log('获取二维码key返回:', businessData);
+        
+        if (businessData.code !== 200) {
+          throw new Error(`获取key失败: ${businessData.message || '未知错误'}`);
+        }
+        if (!businessData.unikey) {
+          throw new Error('接口未返回有效的unikey');
+        }
+        return businessData.unikey;
+      })
+  },
 
+  /**
+   * 生成二维码图片
+   * @param {string} key - 从getQRKey获取的unikey
+   * @returns {Promise<string>} 返回二维码图片的base64编码
+   */
+    // 修改 generateQRCode 方法，增加调试信息
+    // 在 api.js 的 generateQRCode 方法中
+    // api.js 中保持完整前缀
+  generateQRCode(key) {
+    return instance.get('/login/qr/create', { 
+      params: { key, qrimg: true }
+    })
+    .then(response => {
+      const businessData = response.data;
+      console.log('二维码接口返回:', businessData);
+      
+      // 1. 优先使用 qrimg（确保包含完整前缀）
+      if (businessData.qrimg) {
+        // 检查是否已有前缀，没有则补全（兼容不同接口返回格式）
+        const base64Prefix = 'data:image/png;base64,';
+        if (!businessData.qrimg.startsWith(base64Prefix)) {
+          console.warn('自动补全Base64前缀');
+          return base64Prefix + businessData.qrimg;
+        }
+        return businessData.qrimg; // 保留完整前缀
+      }
+      
+      // 2. 若只有 qrurl，则生成带前缀的Base64
+      if (businessData.qrurl) {
+        return import('qrcode').then(({ toDataURL }) => {
+          return toDataURL(businessData.qrurl); // toDataURL会自动添加正确前缀
+        });
+      }
+      
+      throw new Error('未获取到有效的二维码数据');
+    });
+  },
+
+
+  /**
+   * 检查二维码扫描状态
+   * @param {string} key - 从getQRKey获取的unikey
+   * @returns {Promise<{code: number, message: string, cookie?: string}>}
+   */
+  // 修改checkQRStatus方法，明确区分业务状态码和错误
+checkQRStatus(key) {
+  return instance.get('/login/qr/check', { 
+    params: { key } 
+  })
+  .then(response => {
+    // 二维码登录的正常状态码范围：800-803
+    const validCodes = [800, 801, 802, 803];
+    
+    if (validCodes.includes(response.code)) {
+      // 正常业务状态，直接返回状态信息
+      return {
+        code: response.code,
+        message: response.message,
+        cookie: response.cookie
+      };
+    } else {
+      // 非预期的业务状态码，视为异常
+      throw new Error(`Unexpected status code: ${response.code}, message: ${response.message}`);
+    }
+  })
+  .catch(error => {
+    // 捕获网络错误或接口异常（如500错误）
+    console.error('Check QR status failed:', error);
+    throw new Error(`Network error or server exception: ${error.message}`);
+  });
+},
+
+// 轮询逻辑中仅处理真正的错误
+async startQRLogin(onQRCodeGenerated, onStatusChange) {
+  try {
+    const key = await this.getQRKey();
+    const qrImg = await this.generateQRCode(key);
+    onQRCodeGenerated(qrImg);
+    
+    return new Promise((resolve, reject) => {
+      const timer = setInterval(async () => {
+        try {
+          const status = await this.checkQRStatus(key);
+          // 所有正常状态码都会触发状态更新，不会进入catch
+          onStatusChange(status);
+          
+          if (status.code === 803) {
+            clearInterval(timer);
+            resolve({ code: status.code, cookie: status.cookie });
+          } else if (status.code === 800) {
+            clearInterval(timer);
+            reject(new Error('QR code expired')); // 主动处理过期状态
+          }
+          // 801(等待扫码)和802(已扫码待确认)会继续轮询
+        } catch (error) {
+          // 只处理真正的错误（网络问题或非预期状态码）
+          clearInterval(timer);
+          reject(error);
+        }
+      }, 1500);
+    });
+  } catch (error) {
+    console.error('QR login process failed:', error);
+    throw error;
+  }
+},
+
+  /**
+   * 完整的二维码登录流程
+   * @param {function} onQRCodeGenerated - 二维码生成回调 (base64)
+   * @param {function} onStatusChange - 状态变化回调 (status: {code, message})
+   * @returns {Promise<{code: number, cookie?: string}>} 返回最终登录结果
+   */
+  async startQRLogin(onQRCodeGenerated, onStatusChange) {
+    try {
+      // 1. 获取二维码key
+      const key = await this.getQRKey()
+      console.log('获取到的QR Key:', key) // 调试用：打印获取到的key
+      
+      // 2. 生成二维码图片
+      const qrImg = await this.generateQRCode(key)
+      onQRCodeGenerated(qrImg)
+      
+      // 3. 轮询检查扫码状态
+      return new Promise((resolve, reject) => {
+        const timer = setInterval(async () => {
+          try {
+            const status = await this.checkQRStatus(key)
+            onStatusChange(status)
+            
+            if (status.code === 803) {
+              clearInterval(timer)
+              resolve({
+                code: status.code,
+                cookie: status.cookie
+              })
+            } else if (status.code === 800) {
+              clearInterval(timer)
+              reject(new Error('QR code expired'))
+            }
+          } catch (error) {
+            clearInterval(timer)
+            reject(error)
+          }
+        }, 1500)
+      })
+    } catch (error) {
+      console.error('二维码登录流程失败:', error) // 调试用：打印错误信息
+      throw error
+    }
+  }
+}
 /**
  * 用户认证相关API
  */
