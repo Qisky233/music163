@@ -1,6 +1,24 @@
 # YPlayer - 网易云音乐网页播放器
 
-YPlayer是一个基于网易云音乐API的现代化、轻量级网页音乐播放器，具备登录、个人中心、歌单管理、音乐播放及评论功能，同时确保移动端与桌面端的良好兼容性。
+YPlayer是一个基于网易云音乐API的现代化、轻量级网页音乐播放器，具备音乐播放、歌单管理、个人中心等功能，同时确保移动端与桌面端的良好兼容性。
+
+## 更新日志
+
+### v0.0.1 (2025-08-07)
+- 初始化项目
+- 增加首页、搜索及音乐播放
+
+### v0.0.2 (2025-08-09)
+- 增加搜索页面
+- 实现关键词搜索
+
+### v0.0.3 (2025-08-12)
+- 搜索、登录组件化
+- 增加二维码登录
+
+### v0.0.4 (2025-08-13)
+- 封装axios接口
+- 菜单改成为我推荐、发现音乐和播客电台
 
 ## 技术栈
 
@@ -14,57 +32,45 @@ YPlayer是一个基于网易云音乐API的现代化、轻量级网页音乐播�
 - **版本控制**: Git
 - **路由管理**: Vue Router
 
-## 功能模块
+## 核心功能模块
 
+### 1. 为我推荐
+- 个性化推荐歌单
+- 每日推荐歌曲
+- 基于听歌偏好的智能推荐
+- 热门音乐推荐
 
-### 1. 用户认证系统
-- 网易云音乐账号登录功能 (支持手机号+验证码登录)
-- 登录状态管理与持久化
-- 登录态过期自动刷新机制
+### 2. 发现音乐
+- 歌单广场（各类主题歌单）
+- 排行榜（热门歌曲排行）
+- 歌手列表
+- 新歌速递
+- 音乐搜索功能
 
-### 2. 个人中心
-- 用户基本信息展示 (头像、昵称、等级等)
-- 我的收藏 (歌曲、专辑、歌手)
-- 最近播放记录
-- 个人设置 (主题切换、播放偏好等)
-
-### 3. 歌单系统
-- 我的歌单列表与管理
-- 歌单详情页 (包含歌曲列表、创建者信息、简介等)
-- 推荐歌单展示
-- 歌单搜索功能
-- 歌单收藏/取消收藏
-
-### 4. 音乐播放功能
-- 核心播放器组件 (播放/暂停、上一首/下一首、进度条、音量控制)
-- 播放模式切换 (顺序播放、随机播放、单曲循环)
-- 歌词显示与同步滚动
-- 音频质量切换
-- 后台播放支持
-- 播放历史记录
-
-### 5. 评论系统
-- 歌曲评论列表与分页加载
-- 热门评论突出显示
-- 评论点赞功能
-- 发表评论功能
-
-### 6. 搜索功能
-- 支持歌曲、歌手、专辑、歌单搜索
-- 搜索建议功能
-- 搜索历史记录
+### 3. 播客电台
+- 热门播客推荐
+- 播客分类浏览
+- 播客播放与订阅
 
 ## 项目结构
 
 ```
 Yplayer/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml
 ├── .gitignore
-├── .trae/
-│   └── rules/
-│       └── project_rules.md
 ├── .vscode/
 │   └── extensions.json
 ├── README.md
+├── dist/
+│   ├── assets/
+│   ├── index.html
+│   └── vite.svg
+├── img/
+│   ├── 1.png
+│   ├── 2.png
+│   └── 3.png
 ├── index.html
 ├── package-lock.json
 ├── package.json
@@ -73,22 +79,54 @@ Yplayer/
 │   └── vite.svg
 ├── src/
 │   ├── App.vue
+│   ├── api/
+│   │   ├── album.js
+│   │   ├── artist.js
+│   │   ├── banner.js
+│   │   ├── comment.js
+│   │   ├── index.js
+│   │   ├── playlist.js
+│   │   ├── qrLogin.js
+│   │   ├── radio.js
+│   │   ├── recommend.js
+│   │   ├── request.js
+│   │   ├── search.js
+│   │   ├── song.js
+│   │   ├── topList.js
+│   │   └── user.js
 │   ├── api.js
 │   ├── assets/
+│   │   ├── search.svg
 │   │   └── vue.svg
 │   ├── components/
+│   │   ├── HelloWorld.vue
+│   │   ├── Login.vue
 │   │   ├── Navbar.vue
-│   │   └── PlayerBar.vue
+│   │   ├── PlayerBar.vue
+│   │   └── QRLogin.vue
 │   ├── main.js
 │   ├── router/
 │   │   └── index.js
 │   ├── store/
+│   │   ├── discover.js
 │   │   ├── player.js
+│   │   ├── recommend.js
 │   │   └── user.js
 │   ├── style.css
+│   ├── test.vue
+│   ├── utils/
+│   │   ├── auth.js
+│   │   ├── errorCode.js
+│   │   └── request.js
 │   └── views/
+│       ├── Discover.vue
 │       ├── Home.vue
-│       └── Login.vue
+│       ├── Player.vue
+│       ├── PlaylistDetail.vue
+│       ├── PodcastRadio.vue
+│       ├── Search.vue
+│       ├── UserProfile.vue
+│       └── discover/
 └── vite.config.js
 ```
 

@@ -1,46 +1,97 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../views/Home.vue'
 
 // 懒加载组件
-// 暂时注释掉尚未创建的组件
-// const PlaylistDetail = () => import('../views/PlaylistDetail.vue')
-// const Player = () => import('../views/Player.vue')
-// const Search = () => import('../views/Search.vue')
-// const UserProfile = () => import('../views/UserProfile.vue')
+const Home = () => import('../views/Home.vue')
+const PlaylistDetail = () => import('../views/PlaylistDetail.vue')
+const Player = () => import('../views/Player.vue')
+const Search = () => import('../views/Search.vue')
+const UserProfile = () => import('../views/UserProfile.vue')
+const Discover = () => import('../views/Discover.vue')
+const Artists = () => import('../views/discover/Artists.vue')
+const NewMusic = () => import('../views/discover/NewMusic.vue')
+const Playlists = () => import('../views/discover/Playlists.vue')
+const Toplists = () => import('../views/discover/Toplists.vue')
+const PodcastRadio = () => import('../views/PodcastRadio.vue')
 
 // 路由配置
 const routes = [
   {
     path: '/',
     name: 'Home',
-    component: Home
+    component: Home,
+    meta: {
+      title: '为我推荐'
+    }
   },
-  // 暂时注释掉尚未创建的路由
-  // {
-  //   path: '/playlist/:id',
-  //   name: 'PlaylistDetail',
-  //   component: PlaylistDetail,
-  //   props: true
-  // },
-  // {
-  //   path: '/player',
-  //   name: 'Player',
-  //   component: Player
-  // },
+  {
+    path: '/discover',
+    name: 'Discover',
+    component: Discover,
+    meta: {
+      title: '发现音乐'
+    },
+    children: [
+      { path: '', redirect: '/discover/playlists' },
+
+      {
+        path: 'artists',
+        name: 'Artists',
+        component: Artists,
+        meta: {
+          title: '歌手'
+        }
+      },
+      {
+        path: 'newMusic',
+        name: 'NewMusic',
+        component: NewMusic,
+        meta: {
+          title: '新歌速递'
+        }
+      },
+      {
+        path: 'playlists',
+        name: 'Playlists',
+        component: Playlists,
+        meta: {
+          title: '推荐歌单'
+        }
+      },
+      {
+        path: 'toplists',
+        name: 'Toplists',
+        component: Toplists,
+        meta: {
+          title: '排行榜'
+        }
+      }
+    ]
+  },
+  {
+    path: '/podcastradio',
+    name: 'PodcastRadio',
+    component: PodcastRadio,
+    meta: {
+      title: '播客电台'
+    }
+  },
   {
     path: '/search',
     name: 'Search',
-    component: () => import('../views/Search.vue') 
+    component: Search,
+    meta: {
+      title: '搜索'
+    }
   },
-  // 暂时注释掉尚未创建的UserProfile组件
-  // {
-  //   path: '/profile',
-  //   name: 'UserProfile',
-  //   component: UserProfile,
-  //   meta: {
-  //     requiresAuth: true
-  //   }
-  // },
+  {
+    path: '/profile',
+    name: 'UserProfile',
+    component: UserProfile,
+    meta: {
+      title: '个人中心',
+      requiresAuth: false
+    }
+  },
   // 404页面
   {
     path: '/:pathMatch(.*)*',

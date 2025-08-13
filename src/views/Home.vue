@@ -45,8 +45,8 @@
       </section>
 
       <!-- 排行榜和最新音乐并排 -->
-      <div class="side-by-side-container">
-        <!-- 排行榜 -->
+      <!-- <div class="side-by-side-container">
+        排行榜
         <section class="section-container half-width">
           <div class="section-header">
             <h2 class="section-title">排行榜</h2>
@@ -64,24 +64,24 @@
           </div>
         </section>
 
-        <!-- 最新音乐 -->
+        最新音乐
         <section class="section-container half-width">
-        <div class="section-header">
-          <h2 class="section-title">最新音乐</h2>
-          <a href="/newest" class="more-link">查看更多</a>
-        </div>
-        <div class="song-list">
-          <div class="song-item" v-for="(song, index) in newSongs" :key="index" @click="playSong(song.id)">
-            <div class="song-rank">{{ index + 1 }}</div>
-            <div class="song-info">
-              <h3 class="song-name">{{ song.name }}</h3>
-              <p class="song-artist">{{ song.artists.map(artist => artist.name).join(' / ') }}</p>
-            </div>
-            <div class="song-duration">{{ formatTime(song.duration / 1000) }}</div>
+          <div class="section-header">
+            <h2 class="section-title">最新音乐</h2>
+            <a href="/newest" class="more-link">查看更多</a>
           </div>
-        </div>
-      </section>
-    </div>
+          <div class="song-list">
+            <div class="song-item" v-for="(song, index) in newSongs" :key="index" @click="playSong(song.id)">
+              <div class="song-rank">{{ index + 1 }}</div>
+              <div class="song-info">
+                <h3 class="song-name">{{ song.name }}</h3>
+                <p class="song-artist">{{ song.artists.map(artist => artist.name).join(' / ') }}</p>
+              </div>
+              <div class="song-duration">{{ formatTime(song.duration / 1000) }}</div>
+            </div>
+          </div>
+        </section>
+      </div> -->
     </main>
 
     <!-- 底部播放条 -->

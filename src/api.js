@@ -3,7 +3,7 @@ import { useUserStore } from './store/user'
 
 // 创建Axios实例
 const instance = axios.create({
-  baseURL: 'https://music163-jet.vercel.app/',
+  baseURL: 'http://47.76.235.53:5500/',
   timeout: 10000
 })
 

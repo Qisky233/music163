@@ -31,10 +31,9 @@
       </div>
 
       <nav class="nav-links" v-if="!isMobile">
-        <a href="/" class="nav-link" :class="{ active: currentRoute === '/' }">首页</a>
-        <a href="/discover" class="nav-link" :class="{ active: currentRoute === '/discover' }">发现</a>
-        <a href="/my" class="nav-link" :class="{ active: currentRoute === '/my' }">个人中心</a>
-        <a href="/playlist" class="nav-link" :class="{ active: currentRoute === '/playlist' }">歌单</a>
+        <a href="/" class="nav-link" :class="{ active: currentRoute === '/' }">为我推荐</a>
+        <a href="/discover" class="nav-link" :class="{ active: currentRoute.startsWith('/discover') }">发现音乐</a>
+        <a href="/podcastradio" class="nav-link" :class="{ active: currentRoute === '/podcastradio' }">播客电台</a>
       </nav>
       
       <div class="search-container">
@@ -109,10 +108,9 @@
     <!-- 移动端菜单 -->
     <div class="mobile-menu" :class="{ 'show': showMobileMenu }">
       <nav class="mobile-nav-links">
-        <a href="/" class="mobile-nav-link" @click="closeMobileMenu">首页</a>
-        <a href="/discover" class="mobile-nav-link" @click="closeMobileMenu">发现</a>
-        <a href="/my" class="mobile-nav-link" @click="closeMobileMenu">个人中心</a>
-        <a href="/playlist" class="mobile-nav-link" @click="closeMobileMenu">歌单</a>
+        <a href="/" class="mobile-nav-link" @click="closeMobileMenu">为我推荐</a>
+        <a href="/discover" class="mobile-nav-link" @click="closeMobileMenu">发现音乐</a>
+        <a href="/podcastradio" class="mobile-nav-link" @click="closeMobileMenu">播客电台</a>
       </nav>
     </div>
   </header>
