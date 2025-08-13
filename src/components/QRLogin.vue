@@ -52,24 +52,30 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../store/user'
 import { message } from 'ant-design-vue'
-import { useQrLoginAPI, useUserAPI } from '../api/index';
+// 只引入qrLogin.js中的API，移除其他登录相关API
+import { useQrLoginAPI } from '../api/qrLogin';
 
-// 存储带完整前缀的Base64字符串（如 data:image/png;base64,xxxx）
+// 状态定义保持不变
 const qrCodeSrc = ref('');
 const loading = ref(false);
-// 状态定义
-const qrImage = ref('')
-const statusText = ref('请使用手机扫码登录')
-const loginSuccess = ref(false)
-const pollTimer = ref(null) // 轮询定时器
-const currentKey = ref('') // 当前二维码key
+const loginSuccess = ref(false);
+const pollTimer = ref(null); // 修正定时器存储
+const currentKey = ref('');
 const emit = defineEmits(['show-phone-login', 'login-success'])
 
 const userStore = useUserStore()
 const router = useRouter()
-const { getQRKey, generateQRCode, checkQRStatus } = useQrLoginAPI();
-const { getUserInfo } = useUserAPI();
+// 仅使用qrLogin.js中的API方法
+const { getQRKey, generateQRCode, checkQRStatus, getUserInfoByCookie } = useQrLoginAPI();
+// 处理切换到手机号登录
+const handlePhoneLogin = () => {
+  // 发射事件通知父组件切换登录方式
+  emit('show-phone-login')
+  // 如果需要可以同时关闭当前登录弹窗
+  // emit('close-modal')
+}
 // 生成新的二维码
+// generateNewQR方法中直接使用返回的base64
 const generateNewQR = async () => {
   try {
     loading.value = true;
@@ -77,13 +83,13 @@ const generateNewQR = async () => {
     
     // 获取key
     const key = await getQRKey();
-    // 获取带完整前缀的二维码数据
+    // 直接获取接口返回的完整base64
     const base64WithPrefix = await generateQRCode(key);
     
-    // 直接赋值（包含前缀，可直接作为img的src）
+    // 直接赋值（无需任何转换）
     qrCodeSrc.value = base64WithPrefix;
     
-    // 开始轮询扫码状态（根据实际需求实现）
+    // 开始轮询
     startPolling(key);
   } catch (error) {
     console.error('生成二维码失败:', error);
@@ -95,85 +101,141 @@ const generateNewQR = async () => {
 
 // 处理图片加载失败
 const handleQrError = () => {
-  console.error('二维码图片加载失败，可能是Base64数据无效');
+  console.error('二维码图片加载失败');
   qrCodeSrc.value = '';
 };
 
-// 轮询扫码状态（示例）
+// 轮询扫码状态（修正定时器存储和状态处理）
+// 轮询扫码状态（仅检查同一key下的code变化）
 const startPolling = (key) => {
-  const timer = setInterval(async () => {
+  // 清除已有定时器，确保唯一
+  if (pollTimer.value) {
+    clearInterval(pollTimer.value);
+  }
+  
+  // 存储当前key对应的上一次状态码，用于检测变化
+  let lastCode = null;
+
+  pollTimer.value = setInterval(async () => {
+    // 只处理当前key的轮询，避免处理已切换的二维码
+    if (currentKey.value !== key) {
+      clearInterval(pollTimer.value);
+      return;
+    }
+
     try {
       const status = await checkQRStatus(key);
-      if (status.code === 803) {
-        clearInterval(timer);
-        console.log('登录成功，跳转页面');
-        // 处理登录成功逻辑
-      } else if (status.code === 800) {
-        clearInterval(timer);
-        console.log('二维码已过期，重新生成');
-        generateNewQR(); // 自动重试
+      
+      // 验证返回格式
+      if (typeof status !== 'object' || status.code === undefined) {
+        throw new Error('二维码状态接口返回格式异常');
+      }
+
+      // 仅当状态码发生变化时才处理
+      if (status.code !== lastCode) {
+        lastCode = status.code; // 更新上次状态码
+
+        if (status.code === 803) {
+          clearInterval(pollTimer.value);
+          console.log('登录成功，处理用户信息');
+          handleLoginSuccess(status.cookie); // 传递cookie
+        } else if (status.code === 800) {
+          clearInterval(pollTimer.value);
+          message.warn('二维码已过期，正在重新生成');
+          generateNewQR();
+        } else if (status.code === 801) {
+          statusText.value = '请使用手机扫码登录';
+        } else if (status.code === 802) {
+          statusText.value = '已扫码，请在手机上确认';
+        } else {
+          // 处理其他未定义的状态码
+          console.log('收到未定义的状态码:', status.code);
+        }
       }
     } catch (error) {
-      clearInterval(timer);
-      console.error('轮询失败:', error);
+      // 检查错误响应中是否包含合法code，如果有则不处理错误
+      const hasValidCode = error.response?.data?.code !== undefined;
+      if (hasValidCode) {
+        const currentCode = error.response.data.code;
+        // 错误响应中的code变化时才处理
+        if (currentCode !== lastCode) {
+          lastCode = currentCode;
+          console.log('错误响应中包含新状态码:', currentCode);
+          // 可根据需要添加错误响应中状态码的处理逻辑
+        }
+        return;
+      }
+
+      clearInterval(pollTimer.value);
+      const errorInfo = {
+        message: error.message || '未知错误',
+        status: error.response?.status,
+        data: error.response?.data,
+        config: error.config?.url
+      };
+      console.error('轮询失败:', errorInfo);
+      message.error(`轮询失败: ${errorInfo.message}`);
+      
+      // 3秒后重试生成二维码（仅当还是当前key时）
+      setTimeout(() => {
+        if (!loading.value && currentKey.value === key) {
+          generateNewQR();
+        }
+      }, 3000);
     }
   }, 2000);
 };
-
-// 初始化生成二维码
-generateNewQR();
-
-
-// 处理登录成功
+// 处理登录成功（使用qrLogin.js中的getUserInfoByCookie）
 const handleLoginSuccess = async (cookie) => {
-  loginSuccess.value = true
+  loginSuccess.value = true;
   
   try {
-    // 解析cookie中的用户信息
+    // 1. 解析cookie
     const cookies = cookie.split(';').reduce((obj, item) => {
-      const [key, value] = item.trim().split('=')
-      if (key && value) obj[key] = value
-      return obj
-    }, {})
+      const [key, value] = item.trim().split('=');
+      if (key && value) obj[key] = value;
+      return obj;
+    }, {});
 
-    // 从接口获取完整用户信息（使用cookie）
-    // 使用userAPI获取用户信息
-// 注意：这里假设登录后cookie已设置，getUserInfo可以获取到用户信息
-const userInfo = await getUserInfo()
-    
-    // 存储登录状态
+    // 2. 使用qrLogin.js中的接口获取用户信息
+    const userInfoResponse = await getUserInfoByCookie();
+    const userInfo = userInfoResponse.data;
+
+    // 3. 存储登录状态
     userStore.setLoginStatus({
       userInfo,
       token: cookies.MUSIC_U || cookies.__csrf,
       expires: Date.now() + 7 * 24 * 60 * 60 * 1000
-    })
+    });
 
-    message.success('登录成功')
+    message.success('登录成功');
     
-    // 延迟跳转
+    // 4. 跳转页面
     setTimeout(() => {
-      emit('login-success')
-      router.push(router.currentRoute.value.query.redirect || '/')
-    }, 1500)
+      emit('login-success');
+      router.push(router.currentRoute.value.query.redirect || '/');
+    }, 1500);
   } catch (error) {
-    console.error('处理登录信息失败:', error)
-    message.error('登录信息处理失败，请重新登录')
-    // 失败后重新生成二维码
-    setTimeout(generateNewQR, 2000)
+    console.error('处理登录信息失败:', error);
+    message.error('登录信息处理失败，请重新登录');
+    setTimeout(generateNewQR, 2000);
   }
-}
+};
 
-// 组件挂载时生成二维码
+// 组件挂载时生成二维码（避免重复调用）
 onMounted(() => {
-  generateNewQR()
-})
+  if (!qrCodeSrc.value) { // 仅在未生成时调用
+    generateNewQR();
+  }
+});
 
-// 组件卸载时清理
+// 组件卸载时清理定时器
 onUnmounted(() => {
   if (pollTimer.value) {
-    clearInterval(pollTimer.value)
+    clearInterval(pollTimer.value);
+    pollTimer.value = null;
   }
-})
+});
 </script>
   
   <style scoped>

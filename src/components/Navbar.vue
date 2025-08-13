@@ -38,10 +38,6 @@
       
       <div class="search-container">
 
-        <button 
-      class="floating-search-button"
-      @click="handleSearch" 
-    >搜索</button>
         <div class="search-input-wrapper" @click.stop="showOverlay = true">
           <input
             type="text"
@@ -52,7 +48,15 @@
             @focus="getSearchSuggest"
             @input="debounceGetSearchSuggest"
           />
-          <span class="search-icon" @click="handleSearch" v-if="searchKeyword"></span>
+          <!-- 搜索图标按钮，替换原有的span和floating-search-button -->
+          <button class="search-icon-btn" @click="handleSearch">
+            <img src="@/assets/search.svg" alt="搜索" class="search-icon-img">
+          </button>
+        </div>
+      
+        <!-- 搜索结果下拉框保持不变 -->
+        <div class="search-results" v-if="showSuggestions">
+          <!-- 原有内容 -->
         </div>
 
         <!-- 搜索结果下拉框 -->
@@ -569,33 +573,49 @@ onUnmounted(() => {
   outline: none;
 }
 
-.search-icon {
+/* 在Navbar.vue的style部分 */
+.search-input-wrapper {
+  position: relative;
+  width: 100%;
+  height: 36px;
+  background-color: #f0f0f0;
+  border-radius: 18px;
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+/* 搜索图标按钮样式 */
+.search-icon-btn {
   position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 40px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-icon-img {
   width: 18px;
   height: 18px;
-  background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTk5OTkiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48bGluZSB4MT0iMTgiIHkxPSI2IiB4Mj0iNiIgeTI9IjE4Ii8+PGxpbmUgeDE9IjYiIHkxPSI2IiB4Mj0iMTgiIHkyPSIxOCIvPjwvc3ZnPg==');
-  background-size: cover;
-  cursor: pointer;
+  object-fit: contain;
+  color: var(--text-color);
 }
-/* 新增浮动按钮样式 */
-.floating-search-button {
-  position: absolute;
-  right: -70px; /* 按钮定位到搜索框右侧 */
-  top: 50%;
-  transform: translateY(-50%);
-  padding: 6px 16px;
-  background-color: var(--primary-color);
-  color: white;
+
+/* 调整输入框右边距，避免文字被图标遮挡 */
+.search-input {
+  width: 100%;
+  height: 100%;
+  padding: 0 40px 0 20px; /* 右侧内边距调整为40px，给图标留出空间 */
   border: none;
-  border-radius: 18px;
+  background: transparent;
   font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.3s;
+  outline: none;
 }
 
 .floating-search-button:hover {
