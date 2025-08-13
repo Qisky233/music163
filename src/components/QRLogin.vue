@@ -52,7 +52,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../store/user'
 import { message } from 'ant-design-vue'
-import { qrLoginAPI } from '../api.js';
+import { useQrLoginAPI, useUserAPI } from '../api/index';
 
 // 存储带完整前缀的Base64字符串（如 data:image/png;base64,xxxx）
 const qrCodeSrc = ref('');
@@ -67,6 +67,8 @@ const emit = defineEmits(['show-phone-login', 'login-success'])
 
 const userStore = useUserStore()
 const router = useRouter()
+const { getQRKey, generateQRCode, checkQRStatus } = useQrLoginAPI();
+const { getUserInfo } = useUserAPI();
 // 生成新的二维码
 const generateNewQR = async () => {
   try {
@@ -74,9 +76,9 @@ const generateNewQR = async () => {
     qrCodeSrc.value = '';
     
     // 获取key
-    const key = await qrLoginAPI.getQRKey();
+    const key = await getQRKey();
     // 获取带完整前缀的二维码数据
-    const base64WithPrefix = await qrLoginAPI.generateQRCode(key);
+    const base64WithPrefix = await generateQRCode(key);
     
     // 直接赋值（包含前缀，可直接作为img的src）
     qrCodeSrc.value = base64WithPrefix;
@@ -101,7 +103,7 @@ const handleQrError = () => {
 const startPolling = (key) => {
   const timer = setInterval(async () => {
     try {
-      const status = await qrLoginAPI.checkQRStatus(key);
+      const status = await checkQRStatus(key);
       if (status.code === 803) {
         clearInterval(timer);
         console.log('登录成功，跳转页面');
@@ -135,7 +137,9 @@ const handleLoginSuccess = async (cookie) => {
     }, {})
 
     // 从接口获取完整用户信息（使用cookie）
-    const userInfo = await qrLoginAPI.getUserInfoByCookie(cookies)
+    // 使用userAPI获取用户信息
+// 注意：这里假设登录后cookie已设置，getUserInfo可以获取到用户信息
+const userInfo = await getUserInfo()
     
     // 存储登录状态
     userStore.setLoginStatus({

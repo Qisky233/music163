@@ -69,8 +69,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { useSongAPI } from '../../api/song';
-import { useAlbumAPI } from '../../api/album';
+import { useSongAPI, useAlbumAPI } from '../../api/index';
 import { usePlayerStore } from '@/store/player';
 import { format } from 'date-fns';
 

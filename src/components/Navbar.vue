@@ -121,7 +121,7 @@
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useUserStore } from '../store/user'
 import { useRouter } from 'vue-router'
-import { searchAPI, songAPI } from '../api'
+import { useSearchAPI, useSongAPI } from '../api/index'
 import { usePlayerStore } from '../store/player'
 import { defineEmits } from 'vue'
 import QRLogin from '../components/QRLogin.vue'
@@ -132,6 +132,8 @@ const showLoginModal = ref(false)
 const userStore = useUserStore()
 const playerStore = usePlayerStore()
 const router = useRouter()
+const { search } = useSearchAPI()
+const { getSongUrl } = useSongAPI()
 const searchKeyword = ref('')
 const isMobile = ref(false)
 const showMobileMenu = ref(false)
@@ -252,7 +254,7 @@ const getSearchSuggest = async () => {
   try {
     currentPage.value = 1
     // 使用search方法代替getSearchSuggest，以支持分页
-    const response = await searchAPI.search(searchKeyword.value, 1, 10, 0)
+    const response = await search(searchKeyword.value, 1, 10, 0)
     searchSuggestions.value = response.result.songs || []
     totalResults.value = response.result.songCount || 0
     showSuggestions.value = searchSuggestions.value.length > 0
@@ -288,7 +290,7 @@ const loadMoreResults = async () => {
 
   try {
     const offset = (currentPage.value - 1) * 10
-    const response = await searchAPI.search(searchKeyword.value, 1, 10, offset)
+    const response = await search(searchKeyword.value, 1, 10, offset)
     searchSuggestions.value = [...searchSuggestions.value, ...(response.result.songs || [])]
   } catch (error) {
     console.error('Failed to load more search results:', error)
@@ -303,7 +305,7 @@ const loadMoreResults = async () => {
 const playSong = async (song) => {
   try {
     // 获取歌曲URL
-    const response = await songAPI.getSongUrl(song.id)
+    const response = await getSongUrl(song.id)
     if (response.data && response.data.length > 0) {
       const songUrl = response.data[0].url
       // 更新播放器状态

@@ -64,13 +64,13 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { usePlaylistAPI, useSongAPI } from '../api'
+import { usePlaylistAPI, useSongAPI } from '../api/index'
 import { usePlayerStore } from '../store/player'
 import { message } from 'ant-design-vue'
 
 // 初始化API
-const playlistAPI = usePlaylistAPI()
-const songAPI = useSongAPI()
+const { getPlaylistDetail } = usePlaylistAPI()
+const { getSongUrl, checkFavorite, addFavorite, cancelFavorite } = useSongAPI()
 
 // 路由和状态管理
 const route = useRoute()
@@ -143,7 +143,7 @@ const getPlaylistDetail = async () => {
  */
 const checkIsFavorite = async () => {
   try {
-    const response = await playlistAPI.checkFavorite(playlistId.value)
+    const response = await checkFavorite(playlistId.value)
     isFavorite.value = response
   } catch (error) {
     console.error('检查收藏状态失败:', error)
@@ -156,10 +156,10 @@ const checkIsFavorite = async () => {
 const toggleFavorite = async () => {
   try {
     if (isFavorite.value) {
-      await playlistAPI.cancelFavorite(playlistId.value)
+      await cancelFavorite(playlistId.value)
       message.success('已取消收藏')
     } else {
-      await playlistAPI.addFavorite(playlistId.value)
+      await addFavorite(playlistId.value)
       message.success('收藏成功')
     }
     isFavorite.value = !isFavorite.value

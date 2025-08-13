@@ -48,7 +48,7 @@
 <script setup>
 import { ref, onMounted, watch, onUnmounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
-import { useArtistAPI } from '@/api/artist';
+import { useArtistAPI } from '../../api/index';
 const { fetchArtists } = useArtistAPI();
 import { message } from 'ant-design-vue';
 

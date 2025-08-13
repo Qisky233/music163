@@ -62,7 +62,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useTopListAPI } from '@/api/topList'
+import { useTopListAPI } from '../../api/index'
 
 // 状态定义
 const router = useRouter()

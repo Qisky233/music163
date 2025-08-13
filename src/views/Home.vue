@@ -92,7 +92,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { playlistAPI, musicAPI, artistAPI, bannerAPI, topListAPI } from '../api'
+import { usePlaylistAPI, useMusicAPI, useArtistAPI, useBannerAPI, useTopListAPI } from '../api/index'
 import { usePlayerStore } from '../store/player'
 import Navbar from '../components/Navbar.vue'
 import PlayerBar from '../components/PlayerBar.vue'
@@ -100,6 +100,11 @@ import PlayerBar from '../components/PlayerBar.vue'
 // 状态定义
 const router = useRouter()
 const playerStore = usePlayerStore()
+const { getRecommendPlaylists } = usePlaylistAPI()
+const { getSongDetail, getNewSongs } = useMusicAPI()
+const { getHotArtists } = useArtistAPI()
+const { getBanners } = useBannerAPI()
+const { getTopList } = useTopListAPI()
 const banners = ref([])
 const playlists = ref([])
 const artists = ref([])

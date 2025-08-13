@@ -83,12 +83,13 @@
 <script setup>
 import { ref, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { authAPI } from '../api'
+import { useUserAPI } from '../api/index'
 import { useUserStore } from '../store/user'
 import { message } from 'ant-design-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
+const { sendCode, login } = useUserAPI()
 
 // 状态定义
 const phone = ref('')
@@ -122,7 +123,7 @@ const sendCode = async () => {
 
   try {
     isSendingCode.value = true
-    await authAPI.sendCode(phone.value)
+    await sendCode(phone.value)
     message.success('验证码发送成功')
 
     // 倒计时
@@ -146,7 +147,7 @@ const handleLogin = async () => {
   if (!isFormValid.value) return
 
   try {
-    const response = await authAPI.login(phone.value, captcha.value)
+    const response = await login(phone.value, captcha.value)
     if (response.code === 200) {
       // 登录成功处理
       userStore.setLoginStatus({

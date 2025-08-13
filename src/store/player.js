@@ -1,6 +1,9 @@
 import { defineStore } from 'pinia'
 import { Howl } from 'howler'
-import { songAPI, musicAPI } from '../api'
+import { useSongAPI } from '../api/index'
+
+// 初始化API
+const songAPI = useSongAPI()
 
 /**
  * 音乐播放器状态管理模块

@@ -49,13 +49,15 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { searchAPI, songAPI } from '../api'
+import { useSearchAPI, useSongAPI } from '../api/index'
 import { usePlayerStore } from '../store/player'
 import Navbar from '../components/Navbar.vue'
 import PlayerBar from '../components/PlayerBar.vue'
 
 const route = useRoute()
 const playerStore = usePlayerStore()
+const { search } = useSearchAPI()
+const { getSongUrl } = useSongAPI()
 
 // 状态定义
 const keyword = ref(route.query.keyword || '')
@@ -68,7 +70,7 @@ const performSearch = async () => {
 
   loading.value = true
   try {
-    const response = await searchAPI.search(keyword.value, 1, 30) // 只搜索单曲
+    const response = await search(keyword.value, 1, 30) // 只搜索单曲
     songs.value = response.result?.songs || []
   } catch (error) {
     console.error('搜索失败:', error)
@@ -80,7 +82,7 @@ const performSearch = async () => {
 // 播放歌曲
 const playSong = async (song) => {
   try {
-    const response = await songAPI.getSongUrl(song.id)
+    const response = await getSongUrl(song.id)
     if (response.data && response.data.length > 0) {
       const songUrl = response.data[0].url
       if (songUrl) {

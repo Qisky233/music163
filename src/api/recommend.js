@@ -1,8 +1,8 @@
+import request from './request'
+
 /**
  * 推荐相关API
  */
-import request from './request'
-
 export const useRecommendAPI = () => {
   /**
    * 获取推荐歌单

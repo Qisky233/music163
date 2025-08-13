@@ -25,7 +25,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { usePlaylistAPI } from '@/api/playlist.js'
+import { usePlaylistAPI } from '../../api/index'
 import { message } from 'ant-design-vue'
 
 // 初始化数据

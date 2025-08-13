@@ -66,11 +66,12 @@
 import { ref, computed, watch } from 'vue'
 import { usePlayerStore } from '../store/player'
 import { useRouter } from 'vue-router'
-import { musicAPI } from '../api'
+import { useSongAPI } from '../api/index'
 
 // 状态定义
 const playerStore = usePlayerStore()
 const router = useRouter()
+const { checkFavorite, addFavorite, cancelFavorite } = useSongAPI()
 const defaultCover = 'https://picsum.photos/200/200?random=1'
 const isFavorite = ref(false)
 const isDragging = ref(false)
@@ -185,11 +186,9 @@ const toggleMute = () => {
  */
 const checkIsFavorite = async (songId) => {
   try {
-    // 这里需要实现检查收藏的API调用
-    // const response = await musicAPI.checkFavorite(songId)
-    // isFavorite.value = response.isFavorite
-    // 暂时模拟为未收藏
-    isFavorite.value = false
+    // 检查是否收藏
+    const response = await checkFavorite(songId)
+    isFavorite.value = response.isFavorite
   } catch (error) {
     console.error('Failed to check favorite status:', error)
     isFavorite.value = false
@@ -203,14 +202,12 @@ const toggleFavorite = () => {
   if (!currentSong.value) return
 
   try {
-    // 这里需要实现收藏/取消收藏的API调用
-    // if (isFavorite.value) {
-    //   await musicAPI.cancelFavorite(currentSong.value.id)
-    // } else {
-    //   await musicAPI.addFavorite(currentSong.value.id)
-    // }
-    // isFavorite.value = !isFavorite.value
-    // 暂时模拟切换
+    // 收藏/取消收藏
+    if (isFavorite.value) {
+      await cancelFavorite(currentSong.value.id)
+    } else {
+      await addFavorite(currentSong.value.id)
+    }
     isFavorite.value = !isFavorite.value
   } catch (error) {
     console.error('Failed to toggle favorite:', error)
