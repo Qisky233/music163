@@ -39,7 +39,7 @@
               type="button"
               class="captcha-btn"
               :disabled="isSendingCode || !isPhoneValid"
-              @click="sendCode"
+              @click="sendVerificationCode"
             >
               {{ isSendingCode ? `${countDown}秒后重试` : '获取验证码' }}
             </button>
@@ -115,7 +115,7 @@ const isFormValid = computed(() => {
 })
 
 // 发送验证码
-const sendCode = async () => {
+const sendVerificationCode = async () => {
   if (!isPhoneValid.value) {
     message.error('请输入有效的手机号')
     return

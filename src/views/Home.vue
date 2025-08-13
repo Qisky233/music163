@@ -8,7 +8,7 @@
       <!-- 轮播图 -->
       <div class="banner-container mt-20">
         <div class="banner-wrapper">
-          <img v-for="(item, index) in banners" :key="index" :src="item.pic" alt="轮播图" class="banner-img" />
+          <img v-for="(item, index) in banners" :key="index" :src="item.imageUrl" alt="轮播图" class="banner-img" />
         </div>
       </div>
 
@@ -92,7 +92,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { usePlaylistAPI, useMusicAPI, useArtistAPI, useBannerAPI, useTopListAPI } from '../api/index'
+import { usePlaylistAPI, useSongAPI, useArtistAPI, useBannerAPI, useTopListAPI } from '../api/index'
 import { usePlayerStore } from '../store/player'
 import Navbar from '../components/Navbar.vue'
 import PlayerBar from '../components/PlayerBar.vue'
@@ -101,7 +101,7 @@ import PlayerBar from '../components/PlayerBar.vue'
 const router = useRouter()
 const playerStore = usePlayerStore()
 const { getRecommendPlaylists } = usePlaylistAPI()
-const { getSongDetail, getNewSongs } = useMusicAPI()
+const { getSongDetail, getNewSongs } = useSongAPI()
 const { getHotArtists } = useArtistAPI()
 const { getBanners } = useBannerAPI()
 const { getTopList } = useTopListAPI()
@@ -113,81 +113,12 @@ const topLists = ref([])
 const loading = ref(true)
 
 // 方法定义
-/**
- * 获取轮播图数据
- */
-const getBanners = async () => {
-  try {
-    const response = await bannerAPI.getBanners(0) // 0 表示 PC 端
-    banners.value = response.banners.map(banner => ({
-      pic: banner.imageUrl.trim().replace(/`/g, ''),
-      url: banner.url.trim().replace(/`/g, ''),
-      targetId: banner.targetId,
-      targetType: banner.targetType
-    }))
-  } catch (error) {
-    console.error('Failed to get banners:', error)
-  }
-}
-
-/**
- * 获取推荐歌单
- */
-const getRecommendPlaylists = async () => {
-  try {
-    const response = await playlistAPI.getRecommendPlaylists(12)
-    playlists.value = response.result || []
-  } catch (error) {
-    console.error('Failed to get recommend playlists:', error)
-  }
-}
-
-/**
- * 获取热门歌手
- */
-const getHotArtists = async () => {
-  try {
-    const response = await artistAPI.getHotArtists(6)
-    artists.value = response.artists || []
-  } catch (error) {
-    console.error('Failed to get hot artists:', error)
-  }
-}
-
-/**
- * 获取最新音乐
- */
-const getNewSongs = async () => {
-  try {
-    const response = await musicAPI.getNewSongs(10)
-    // 根据接口数据结构处理数据
-    newSongs.value = response.result.map(item => {
-      const song = item.song
-      return {
-        id: song.id,
-        name: song.name,
-        artists: song.artists,
-        duration: song.duration,
-        album: song.album
-      }
-    })
-  } catch (error) {
-    console.error('Failed to get new songs:', error)
-  }
-}
-
-/**
- * 获取排行榜
- */
-const getTopLists = async () => {
-  try {
-    const response = await topListAPI.getTopList()
-    // 获取前5个排行榜
-    topLists.value = response.list.slice(0, 5)
-  } catch (error) {
-    console.error('Failed to get top lists:', error)
-  }
-}
+// API方法已从相应的API模块中导入，以下是使用说明
+// - getBanners: 获取轮播图数据
+// - getRecommendPlaylists: 获取推荐歌单
+// - getHotArtists: 获取热门歌手
+// - getNewSongs: 获取最新音乐
+// - getTopList: 获取排行榜数据
 
 /**
  * 格式化播放量
@@ -240,7 +171,7 @@ const goToArtist = (id) => {
 const playSong = async (id) => {
   try {
     // 获取歌曲详情
-    const songDetail = await musicAPI.getSongDetail(id)
+    const songDetail = await getSongDetail(id)
     if (songDetail.songs && songDetail.songs.length > 0) {
       const song = songDetail.songs[0]
       // 设置播放列表并播放
@@ -256,13 +187,21 @@ onMounted(async () => {
   try {
     loading.value = true
     // 并行请求数据
-    await Promise.all([
+    // 并行请求数据
+    const [bannersRes, playlistsRes, artistsRes, newSongsRes, topListRes] = await Promise.all([
       getBanners(),
       getRecommendPlaylists(),
       getHotArtists(),
-      getNewSongs(),
-      getTopLists()
+      getNewSongs(10),
+      getTopList()
     ])
+
+    // 赋值给响应式变量
+    banners.value = bannersRes.banners || []
+    playlists.value = playlistsRes.result || []
+    artists.value = artistsRes.artists || []
+    newSongs.value = newSongsRes.result || []
+    topLists.value = topListRes.list || []
   } finally {
     loading.value = false
   }

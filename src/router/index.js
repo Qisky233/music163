@@ -25,13 +25,12 @@ const routes = [
   },
   {
     path: '/discover',
-    name: 'Discover',
     component: Discover,
     meta: {
       title: '发现音乐'
     },
     children: [
-      { path: '', redirect: '/discover/playlists' },
+      { path: '', name: 'DiscoverHome', redirect: '/discover/playlists' },
 
       {
         path: 'artists',

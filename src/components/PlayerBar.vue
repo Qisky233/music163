@@ -198,7 +198,7 @@ const checkIsFavorite = async (songId) => {
 /**
  * 切换收藏状态
  */
-const toggleFavorite = () => {
+const toggleFavorite = async () => {
   if (!currentSong.value) return
 
   try {
