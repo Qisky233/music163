@@ -9,7 +9,7 @@ export const useUserStore = defineStore('user', {
     isLoggedIn: false, // 用户登录状态
     userInfo: null,    // 用户信息
     token: null,       // 用户令牌
-    expires: null      // 令牌过期时间
+    expires: null,      // 令牌过期时间
   }),
 
   getters: {
@@ -39,7 +39,7 @@ export const useUserStore = defineStore('user', {
       this.userInfo = data.userInfo
       this.token = data.token
       this.expires = data.expires
-
+      
       // 持久化存储到本地
       localStorage.setItem('userInfo', JSON.stringify(data.userInfo))
       localStorage.setItem('token', data.token)
