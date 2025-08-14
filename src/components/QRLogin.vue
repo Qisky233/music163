@@ -34,7 +34,17 @@
             </div>
             <p class="success-text">登录成功，正在跳转...</p>
           </div>
-  
+          <div class="cookie-input-container" v-if="!loginSuccess">
+            <input
+              type="text"
+              v-model="cookieInput"
+              class="cookie-input"
+              placeholder="请输入Cookie"
+            >
+            <button @click="handleCookieLogin" class="set-cookie-btn">
+              使用Cookie登录
+            </button>
+          </div>
           <!-- 切换到手机号登录 -->
           <button 
             type="button" 
@@ -48,25 +58,24 @@
     </div>
   </template>
   <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+// 导入必要的依赖
+import { ref, onMounted, onUnmounted, provide } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../store/user'
 import { message } from 'ant-design-vue'
-// 只引入qrLogin.js中的API，移除其他登录相关API
 import { useQrLoginAPI } from '../api/qrLogin';
 
-// 状态定义保持不变
+// 状态定义
 const qrCodeSrc = ref('');
 const loading = ref(false);
 const loginSuccess = ref(false);
-const pollTimer = ref(null); // 修正定时器存储
+const pollTimer = ref(null);
 const currentKey = ref('');
-const emit = defineEmits(['show-phone-login', 'login-success'])
-
+const cookieInput = ref(''); // 输入框绑定的Cookie值
 const userStore = useUserStore()
 const router = useRouter()
-// 仅使用qrLogin.js中的API方法
 const { getQRKey, generateQRCode, checkQRStatus, getUserInfoByCookie } = useQrLoginAPI();
+const emit = defineEmits(['show-phone-login', 'close-modal'])
 // 处理切换到手机号登录
 const handlePhoneLogin = () => {
   // 发射事件通知父组件切换登录方式
@@ -74,6 +83,26 @@ const handlePhoneLogin = () => {
   // 如果需要可以同时关闭当前登录弹窗
   // emit('close-modal')
 }
+// 处理手动输入Cookie登录
+const handleCookieLogin = () => {
+  if (cookieInput.value.trim()) {
+    // 清除轮询定时器
+    if (pollTimer.value) {
+      clearInterval(pollTimer.value);
+      pollTimer.value = null;
+    }
+    
+    // 直接存储Cookie到userStore的token
+    userStore.token = cookieInput.value.trim()
+    console.log('手动输入的Cookie存储到token:', userStore.token)
+    
+    // 触发登录成功处理
+    handleLoginSuccess()
+  } else {
+    message.warning('请输入有效的Cookie')
+  }
+}
+
 // 生成新的二维码
 // generateNewQR方法中直接使用返回的base64
 const generateNewQR = async () => {
@@ -190,21 +219,24 @@ const handleLoginSuccess = async (cookie) => {
   loginSuccess.value = true;
   
   try {
-    // 1. 解析cookie
-    const cookies = cookie.split(';').reduce((obj, item) => {
-      const [key, value] = item.trim().split('=');
-      if (key && value) obj[key] = value;
-      return obj;
-    }, {});
+    if (!userStore.token) {
+      throw new Error('未获取到有效的Cookie')
+    }
 
-    // 2. 使用qrLogin.js中的接口获取用户信息
+    // 打印Cookie到控制台
+    console.log('登录使用的Cookie(token):', userStore.token)
+    
+    // 通知父组件关闭弹窗
+    emit('login-success');
+    
+    // 获取用户信息
     const userInfoResponse = await getUserInfoByCookie();
     const userInfo = userInfoResponse.data;
 
-    // 3. 存储登录状态
+    // 存储登录状态，直接使用token（已存储Cookie）
     userStore.setLoginStatus({
       userInfo,
-      token: cookies.MUSIC_U || cookies.__csrf,
+      token: userStore.token,  // 直接使用已存储的token
       expires: Date.now() + 7 * 24 * 60 * 60 * 1000
     });
 
@@ -239,6 +271,37 @@ onUnmounted(() => {
 </script>
   
   <style scoped>
+  /* 新增Cookie输入样式 */
+.cookie-input-container {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  padding: 0 10px;
+}
+
+.cookie-input {
+  flex: 1;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.set-cookie-btn {
+  padding: 0 15px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.set-cookie-btn:hover {
+  background-color: #0f62d9;
+}
+
   .qr-login-container {
     display: flex;
     flex-direction: column;
