@@ -17,34 +17,9 @@ const service = axios.create({
 service.interceptors.request.use(config => {
   const isToken = (config.headers || {}).isToken === false
   const userStore = useUserStore()
-
-  if (getToken() && !isToken) {
-    config.headers['Authorization'] = 'Bearer ' + getToken()
-  }
-
-  // 处理GET请求参数
-  if (config.method === 'get' && config.params) {
-    const params = tansParams(config.params);
-    config.url += (config.url.includes('?') ? '&' : '?') + params;
-    config.params = undefined;
-  }
-
-  return config
-}, error => {
-  console.log(error)
-  return Promise.reject(error)
-})
-// 在request拦截器中添加Cookie设置
-// 只保留一个request拦截器，合并逻辑
-service.interceptors.request.use(config => {
-  const isToken = (config.headers || {}).isToken === false
-  const userStore = useUserStore()
-
-  // 使用userStore的token作为Cookie
-  if (userStore.token) {
-    config.headers['Cookie'] = userStore.token
-  }
-
+  // if (userStore.token) {
+  //   config.headers['Cookie'] = userStore.token
+  // }
   if (getToken() && !isToken) {
     config.headers['Authorization'] = 'Bearer ' + getToken()
   }

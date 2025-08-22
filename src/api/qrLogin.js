@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-
+import { useUserStore } from '@/store/user'
 /**
  * 二维码登录相关API
  */
@@ -61,16 +61,28 @@ export const useQrLoginAPI = () => {
       }
     })
   }
-
   /**
-   * 通过cookie获取用户信息
-   * @param {Object} cookies - cookie对象
+   * 获取用户信息
    * @returns {Promise}
    */
-  const getUserInfoByCookie = () => {
-    return request.get('/user/account')
-  }
+   // src/api/qrLogin.js 中修改getUserInfoByCookie方法
+const getUserInfoByCookie = async () => {
+  const userStore = useUserStore()
+  const timestamp = Date.now();
+  const realIP = '116.25.146.177';
+  const result = userStore.token
+  
+  // 获取用户信息
+  const response = await request.get(
+    `/user/account?cookie=${result}&timestamp=${timestamp}&realIP=${realIP}`
+  )
 
+  userStore.userInfo = response.profile;
+  console.log("",userStore.userInfo);
+  return response;
+}
+
+      
   return {
     getQRKey,
     generateQRCode,

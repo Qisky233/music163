@@ -1,6 +1,5 @@
 import request from '@/utils/request'
-
-
+import { useUserStore } from '@/store/user'
 /**
  * 用户认证相关API
  */
@@ -29,7 +28,11 @@ export const useUserAPI = () => {
    * @returns {Promise}
    */
   const getUserInfo = () => {
-    return request.get('/user/account')
+    const userStore = useUserStore()
+    const timestamp = Date.now();
+    const realIP = '116.25.146.177';
+    const result = userStore.token
+    return request.get(`/user/account?cookie=${result}&timestamp=${timestamp}&realIP=${realIP}`)
   }
 
   /**

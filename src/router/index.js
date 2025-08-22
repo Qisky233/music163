@@ -1,6 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-// 懒加载组件
+// 懒加载组件（添加usercenter相关组件）
+const CollectMusicList = () => import('../views/usercenter/CollectMusicList.vue')
+const CreateMusicList = () => import('../views/usercenter/CreateMusicList.vue')
+const MyCollect = () => import('../views/usercenter/MyCollect.vue')
+const Menu = () => import('../views/usercenter/Menu.vue')
+const MyLike = () => import('../views/usercenter/MyLike.vue')
+const RecentlyPlay = () => import('../views/usercenter/RecentlyPlay.vue')
 const Home = () => import('../views/Home.vue')
 const PlaylistDetail = () => import('../views/PlaylistDetail.vue')
 const Player = () => import('../views/Player.vue')
@@ -15,6 +21,7 @@ const PodcastRadio = () => import('../views/PodcastRadio.vue')
 
 // 路由配置
 const routes = [
+ 
   {
     path: '/',
     name: 'Home',
@@ -22,6 +29,55 @@ const routes = [
     meta: {
       title: '为我推荐'
     }
+  },
+  {
+    path: '/profile',
+    name: 'UserProfile',
+    component: UserProfile,
+    meta: {
+      title: '个人中心',
+      // requiresAuth: true  // 个人中心通常需要登录
+    },
+    // usercenter 子路由配置
+    children: [
+            // 在profile路由的children数组中添加
+      {
+        path: '', // 默认子路由
+        name: 'UserCenterHome',
+        component: Menu,
+        meta: { title: '用户中心', requiresAuth: true }
+      },
+      {
+        path: 'collect-music-list',
+        name: 'CollectMusicList',
+        component: CollectMusicList,
+        meta: { title: '收藏的歌单', requiresAuth: true }
+      },
+      {
+        path: 'create-music-list',
+        name: 'CreateMusicList',
+        component: CreateMusicList,
+        meta: { title: '创建的歌单', requiresAuth: true }
+      },
+      {
+        path: 'my-collect',
+        name: 'MyCollect',
+        component: MyCollect,
+        meta: { title: '我的收藏', requiresAuth: true }
+      },
+      {
+        path: 'my-like',
+        name: 'MyLike',
+        component: MyLike,
+        meta: { title: '我的喜欢', requiresAuth: true }
+      },
+      {
+        path: 'recently-play',
+        name: 'RecentlyPlay',
+        component: RecentlyPlay,
+        meta: { title: '最近播放', requiresAuth: true }
+      }
+    ]
   },
   {
     path: '/discover',
@@ -80,15 +136,6 @@ const routes = [
     component: Search,
     meta: {
       title: '搜索'
-    }
-  },
-  {
-    path: '/profile',
-    name: 'UserProfile',
-    component: UserProfile,
-    meta: {
-      title: '个人中心',
-      requiresAuth: false
     }
   },
   // 404页面

@@ -1,4 +1,4 @@
-<template>
+0<template>
     <div class="qr-login-container">
       <div class="qr-login-wrapper">
         <!-- 顶部logo -->
@@ -64,7 +64,6 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '../store/user'
 import { message } from 'ant-design-vue'
 import { useQrLoginAPI } from '../api/qrLogin';
-
 // 状态定义
 const qrCodeSrc = ref('');
 const loading = ref(false);
@@ -75,7 +74,8 @@ const cookieInput = ref(''); // 输入框绑定的Cookie值
 const userStore = useUserStore()
 const router = useRouter()
 const { getQRKey, generateQRCode, checkQRStatus, getUserInfoByCookie } = useQrLoginAPI();
-const emit = defineEmits(['show-phone-login', 'close-modal'])
+// 修正事件声明
+const emit = defineEmits(['show-phone-login', 'close-modal', 'login-success'])
 // 处理切换到手机号登录
 const handlePhoneLogin = () => {
   // 发射事件通知父组件切换登录方式
@@ -222,26 +222,20 @@ const handleLoginSuccess = async (cookie) => {
     if (!userStore.token) {
       throw new Error('未获取到有效的Cookie')
     }
-
-    // 打印Cookie到控制台
-    console.log('登录使用的Cookie(token):', userStore.token)
-    
     // 通知父组件关闭弹窗
     emit('login-success');
-    
     // 获取用户信息
     const userInfoResponse = await getUserInfoByCookie();
     const userInfo = userInfoResponse.data;
-
     // 存储登录状态，直接使用token（已存储Cookie）
     userStore.setLoginStatus({
       userInfo,
       token: userStore.token,  // 直接使用已存储的token
       expires: Date.now() + 7 * 24 * 60 * 60 * 1000
     });
-
-    message.success('登录成功');
-    
+    // 修改手动输入Cookie登录的成功提示（约118行附近）
+    // 在handleLoginSuccess方法中同样修改为
+      message.success(`欢迎回来，${userStore.nickname}`)
     // 4. 跳转页面
     setTimeout(() => {
       emit('login-success');
