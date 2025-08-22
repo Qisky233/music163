@@ -7,74 +7,34 @@ import { defineStore } from 'pinia'
 export const useUserStore = defineStore('user', {
   state: () => ({
     isLoggedIn: false, // 用户登录状态
-    userInfo: null,    // 用户信息
+    userInfo:null,    
     token: null,       // 用户令牌
-    expires: null      // 令牌过期时间
+    expires: null,      // 令牌过期时间
   }),
 
+  // 其余代码保持不变...
   getters: {
-    /**
-     * 获取用户头像URL
-     * @returns {string|null} 用户头像URL或null
-     */
-    avatarUrl: (state) => state.userInfo?.avatarUrl || null,
-
-    /**
-     * 获取用户昵称
-     * @returns {string|null} 用户昵称或null
-     */
-    nickname: (state) => state.userInfo?.nickname || null
+    avatarUrl: (state) => state.userInfo.avatarUrl || null,
+    nickname: (state) => state.userInfo.userName || null // 注意这里可能需要和接口返回的字段对应
   },
 
   actions: {
-    /**
-     * 设置用户登录状态和信息
-     * @param {Object} data - 包含用户信息和令牌的数据
-     * @param {Object} data.userInfo - 用户信息对象
-     * @param {string} data.token - 用户令牌
-     * @param {number} data.expires - 令牌过期时间戳
-     */
     setLoginStatus(data) {
       this.isLoggedIn = true
-      this.userInfo = data.userInfo
+      // 合并用户信息，确保默认字段被正确赋值
+      this.userInfo = {
+        ...this.userInfo, // 保留默认值
+        ...data.userInfo  // 覆盖接口返回的信息
+      }
       this.token = data.token
       this.expires = data.expires
-
+      
       // 持久化存储到本地
-      localStorage.setItem('userInfo', JSON.stringify(data.userInfo))
+      localStorage.setItem('userInfo', JSON.stringify(this.userInfo))
       localStorage.setItem('token', data.token)
       localStorage.setItem('expires', data.expires)
     },
 
-    /**
-     * 退出登录
-     * 清除用户状态和本地存储
-     */
-    logout() {
-      this.isLoggedIn = false
-      this.userInfo = null
-      this.token = null
-      this.expires = null
-
-      // 清除本地存储
-      localStorage.removeItem('userInfo')
-      localStorage.removeItem('token')
-      localStorage.removeItem('expires')
-    },
-
-    /**
-     * 检查令牌是否过期
-     * @returns {boolean} 令牌是否已过期
-     */
-    isTokenExpired() {
-      if (!this.expires) return true
-      return Date.now() > this.expires
-    },
-
-    /**
-     * 从本地存储恢复用户状态
-     * 在应用初始化时调用
-     */
     restoreState() {
       const userInfo = localStorage.getItem('userInfo')
       const token = localStorage.getItem('token')
@@ -82,12 +42,16 @@ export const useUserStore = defineStore('user', {
 
       if (userInfo && token && expires) {
         try {
-          this.userInfo = JSON.parse(userInfo)
+          const parsedUserInfo = JSON.parse(userInfo)
+          // 恢复时合并默认值
+          this.userInfo = {
+            ...this.state.userInfo,
+            ...parsedUserInfo
+          }
           this.token = token
           this.expires = parseInt(expires)
           this.isLoggedIn = !this.isTokenExpired()
 
-          // 如果令牌已过期，自动刷新
           if (this.isTokenExpired() && this.isLoggedIn) {
             this.refreshToken()
           }

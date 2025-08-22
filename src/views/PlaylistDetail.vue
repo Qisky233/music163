@@ -69,7 +69,7 @@ import { usePlayerStore } from '../store/player'
 import { message } from 'ant-design-vue'
 
 // 初始化API
-const { getPlaylistDetail } = usePlaylistAPI()
+const { gePlaylistDetail } = usePlaylistAPI()
 const { getSongUrl, checkFavorite, addFavorite, cancelFavorite } = useSongAPI()
 
 // 路由和状态管理
@@ -125,7 +125,7 @@ const formatDuration = (duration) => {
 const getPlaylistDetail = async () => {
   loading.value = true
   try {
-    const response = await playlistAPI.getPlaylistDetail(playlistId.value)
+    const response = await playlistAPI.gePlaylistDetail(playlistId.value)
     playlist.value = response.playlist
     // 检查是否收藏
     checkIsFavorite()

@@ -17,7 +17,9 @@ const service = axios.create({
 service.interceptors.request.use(config => {
   const isToken = (config.headers || {}).isToken === false
   const userStore = useUserStore()
-
+  // if (userStore.token) {
+  //   config.headers['Cookie'] = userStore.token
+  // }
   if (getToken() && !isToken) {
     config.headers['Authorization'] = 'Bearer ' + getToken()
   }
@@ -34,7 +36,6 @@ service.interceptors.request.use(config => {
   console.log(error)
   return Promise.reject(error)
 })
-
 // 响应拦截器
 service.interceptors.response.use(res => {
   const code = res.data.code || 200;

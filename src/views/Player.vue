@@ -43,8 +43,8 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polygon v-if="playMode === 'sequence'" points="19.07 4.93 14.14 9.86 19.07 14.79 17.66 16.2 12 10.54 6.34 16.2 4.93 14.79 9.86 9.86 4.93 4.93 6.34 3.54 12 9.2 17.66 3.54 19.07 4.93"></polygon>
             <path v-else-if="playMode === 'random'" d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 19.07a10 10 0 0 1 14.14 0M15.54 8.46a5 5 0 0 1 0 7.07M8.46 15.54a5 5 0 0 1 7.07 0"></path>
-            <line v-else="playMode === 'loop'" x1="8" y1="6" x2="16" y2="18"></line>
-            <line v-else="playMode === 'loop'" x1="16" y1="6" x2="8" y2="18"></line>
+            <line v-else-if="playMode === 'loop'" x1="8" y1="6" x2="16" y2="18"></line>
+            <line v-else x1="16" y1="6" x2="8" y2="18"></line>
           </svg>
         </button>
         <button class="prev-btn" @click="prevSong">
